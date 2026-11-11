@@ -49,7 +49,7 @@ for shape in $shapes; do
 	shape_imager="$(SHAPE="$shape" yq -r '.shapes[strenv(SHAPE)].imager // .imager' "$shapes_file")"
 	[[ "$shape_imager" =~ ^ghcr\.io/siderolabs/imager:(v[0-9]+\.[0-9]+\.[0-9]+)${pinned_digest} ]] || fail "$shape imager is not pinned"
 	shape_version="${BASH_REMATCH[1]}"
-	[[ "$(yq -r .version "$profile")" == "$shape_version" ]] || fail "$shape profile version is not the imager's $talos_version"
+	[[ "$(yq -r .version "$profile")" == "$shape_version" ]] || fail "$shape profile version is not the imager's $shape_version"
 	[[ "$(yq -r '[.arch, .secureboot] | join(" ")' "$profile")" == "amd64 false" ]] ||
 		fail "$shape profile is not amd64 without secure boot"
 	[[ "$(yq -r '(has("platform") or has("output"))' "$profile")" == false ]] ||
@@ -105,7 +105,10 @@ run)
 	# Stand-in for the imager's output tar: the profile it received.
 	cat
 	;;
-load) echo "Loaded image: ghcr.io/siderolabs/installer-base:v1.12.12" ;;
+load)
+	printf '%s\n' "${STUB_LOAD_OUTPUT-Loaded image: ghcr.io/siderolabs/installer-base:v1.12.12}"
+	exit "${STUB_LOAD_STATUS:-0}"
+	;;
 inspect)
 	# A pull of another repository leaves its digest beside the pushed one.
 	image="${*: -1}"
@@ -245,6 +248,22 @@ grep -qx "push $published_image" "$CALL_LOG" || fail "installer was not pushed"
 STUB_NO_DIGEST=1 UPGRADE_IMAGE="$published_image" run_build worker installer &&
 	fail "publishing succeeded without a registry digest"
 [[ ! -e "$test_dir/src/_out/worker/installer.ref" ]] || fail "stale installer.ref left after a failed publish"
+# Docker reports an image ID for the untagged archive produced by the imager.
+loaded_id="sha256:$(printf 'b%.0s' {1..64})"
+STUB_LOAD_OUTPUT="Loaded image ID: $loaded_id" UPGRADE_IMAGE="$published_image" run_build worker installer ||
+	fail "publishing an untagged archive failed: $(<"$test_dir/output")"
+grep -qx "tag $loaded_id $published_image" "$CALL_LOG" || fail "loaded image ID was not tagged"
+grep -qx "push $published_image" "$CALL_LOG" || fail "untagged installer was not pushed"
+[[ -s "$test_dir/src/_out/worker/installer.ref" ]] || fail "untagged installer digest missing"
+for load_failure in missing failed; do
+	if [[ "$load_failure" == missing ]]; then
+		STUB_LOAD_OUTPUT="" UPGRADE_IMAGE="$published_image" run_build worker installer && fail "accepted missing load output"
+	else
+		STUB_LOAD_STATUS=1 UPGRADE_IMAGE="$published_image" run_build worker installer && fail "accepted failed docker load"
+	fi
+	grep -q -E '^(tag|push) ' "$CALL_LOG" && fail "published after $load_failure load"
+	[[ ! -e "$test_dir/src/_out/worker/installer.ref" ]] || fail "stale reference after $load_failure load"
+done
 UPGRADE_IMAGE="$published_image" run_build worker metal-raw || fail "metal-raw build with UPGRADE_IMAGE failed"
 grep -q -E '^(load|tag|push) ' "$CALL_LOG" && fail "metal-raw build published an image"
 

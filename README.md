@@ -139,13 +139,16 @@ gh attestation verify release.yaml --repo KeenWill/talos-images
 
 ## Updating Talos
 
-Renovate opens one PR per Talos minor release for the imager and installer
-base, and PRs for extensions that move on their own; none automerges. In the
-Talos bump PR, set each profile's `version` and take the official extensions
+Renovate refreshes digests at the pinned Talos tags and opens PRs for
+extensions that move on their own; none automerges. Talos version upgrades
+are deliberate: update the imager and installer base together, set each
+profile's `version` and take the official extensions
 from that release's catalog, `ghcr.io/siderolabs/extensions:<version>`, whose
 `/image-digests` file lists each extension's ref and digest (so builds match
 Image Factory's). Extensions with kernel modules are rebuilt for the release,
-since Talos signs modules with a per-release key. Before merging,
+since Talos signs modules with a per-release key. Keep the CPU prototype's
+separate imager and profile pins until its patched base is rebuilt and qualified
+for the new version. Before merging,
 build `metal-raw` and boot it (QEMU is enough): maintenance mode answers, and
 `talosctl get extensions --insecure` lists the profile's extensions.
 
