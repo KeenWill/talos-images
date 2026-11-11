@@ -28,7 +28,7 @@ of this repository.
 | Shape | Contents | Outputs |
 | ----- | -------- | ------- |
 | `controlplane` | NVMe tools | installer, metal-raw |
-| `worker` | Storage tools, RoCE DCB, NIC temperature | installer, metal-raw |
+| `worker` | Storage tools, RoCE DCB, NIC temperature, Kata | installer, metal-raw |
 | `gpu-ephemeral` | NVIDIA open LTS modules/toolkit, Tailscale | all seven |
 | `cpu-ephemeral` | Patched CPU base, lifecycle agent, Tailscale | all seven; local only |
 | `basic` | Stock Talos, no extensions | installer, metal-raw, iso, initramfs |
@@ -54,6 +54,27 @@ talosctl apply-config --insecure --nodes <maintenance-ip> --file <node config>
 ```
 
 ## Building
+
+### Kata gate runtime
+
+The worker profile includes the digest-pinned Kata Containers 3.26.0 extension
+from the [Talos v1.12.12 catalog](https://factory.talos.dev/version/v1.12.12/extensions/official).
+Its containerd handler is `kata`. The
+[RuntimeClass example](examples/kata-runtimeclass.yaml) is not applied by a build
+or release. It selects only workers explicitly labeled after their image rollout
+and runtime check. Node rollout and labeling are operator steps; adding the
+extension alone does not qualify coord's full gate.
+
+The [Sidero extension example](https://github.com/siderolabs/extensions/blob/release-1.12/container-runtime/kata-containers/README.md)
+budgets 130 MiB and 250 millicores per pod. These are scheduling estimates;
+measure VM startup, peak memory and full-gate time before sizing a pool. Kata
+provides a separate guest kernel, but the guest container still needs working
+bubblewrap and a delegated user systemd manager. Neither is proven by this
+profile. No privileged workload, host mount or node configuration change is
+included. The catalog also offers gVisor 20260202.0; it is not added to this
+profile and its syscall compatibility with the full gate is untested.
+
+### Build requirements
 
 Needs `docker`, `tar` and [yq](https://github.com/mikefarah/yq) v4. The imager
 reads the profile on stdin and writes a tar to stdout, so its output never

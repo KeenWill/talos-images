@@ -3,10 +3,8 @@
 # build.sh adds the platform and output for each
 # output in shapes.yaml and passes it to the pinned imager on stdin.
 #
-# It reproduces the worker installer
-# ghcr.io/keenwill/talos-metal-installer:v1.12.12-nic-temperature-v0.1.0
-# (sha256:eb597251...), built before this repository existed. The three
-# official extensions keep the v1.12.6 catalog builds that installer carries.
+# Storage extensions retain their existing v1.12.6 catalog builds.
+# Kata comes from the Talos v1.12.12 official extension catalog.
 # No extra kernel arguments.
 arch: amd64
 secureboot: false
@@ -23,6 +21,8 @@ input:
   baseInstaller:
     imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
   systemExtensions:
+    # Opt-in per-pod VM isolation; installing the image requires a node rollout.
+    - imageRef: ghcr.io/siderolabs/kata-containers:3.26.0@sha256:8a691c99c4e4c8137da1c69674c36ea5efa516b2441329f3abe68b2d20f38f03
     # Longhorn needs iscsiadm/iscsid.
     - imageRef: ghcr.io/siderolabs/iscsi-tools:v0.2.0@sha256:b30127b2f3ea6a49aa73dcf18c30da1fa1d2604da00c60519f8f00b4c6d25294
     - imageRef: ghcr.io/siderolabs/nvme-cli:v2.14@sha256:d15c78f47aff07594769e42ad751dbd6e8e58f60d8a5ec940b3248090024d645
