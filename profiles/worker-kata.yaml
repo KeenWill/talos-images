@@ -13,7 +13,7 @@ input:
   sdBoot:
     path: /usr/install/amd64/systemd-boot.efi
   baseInstaller:
-    imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
+    imageRef: ghcr.io/siderolabs/installer-base:v1.13.12@sha256:d7e1bc8d3f4e7e24f8604baf3a7df41be64ab588a952f4f897d855b62908d59b
   systemExtensions:
     # Longhorn needs iscsiadm/iscsid.
     - imageRef: ghcr.io/siderolabs/iscsi-tools:v0.2.0@sha256:b30127b2f3ea6a49aa73dcf18c30da1fa1d2604da00c60519f8f00b4c6d25294

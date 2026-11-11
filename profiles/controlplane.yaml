@@ -23,6 +23,6 @@ input:
   sdBoot:
     path: /usr/install/amd64/systemd-boot.efi
   baseInstaller:
-    imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
+    imageRef: ghcr.io/siderolabs/installer-base:v1.13.12@sha256:d7e1bc8d3f4e7e24f8604baf3a7df41be64ab588a952f4f897d855b62908d59b
   systemExtensions:
     - imageRef: ghcr.io/siderolabs/nvme-cli:v2.14@sha256:1a3e7f3d6f635005a63c31f6f44d23fb5a973b496696a0a1f0ed6f17a4e22954

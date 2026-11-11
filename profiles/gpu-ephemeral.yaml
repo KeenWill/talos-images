@@ -12,7 +12,7 @@ input:
   sdBoot:
     path: /usr/install/amd64/systemd-boot.efi
   baseInstaller:
-    imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
+    imageRef: ghcr.io/siderolabs/installer-base:v1.13.12@sha256:d7e1bc8d3f4e7e24f8604baf3a7df41be64ab588a952f4f897d855b62908d59b
   systemExtensions:
     - imageRef: ghcr.io/siderolabs/nvidia-open-gpu-kernel-modules-lts:580.126.20-v1.12.12@sha256:121f0339f99e3926f09f413a2a07d1dc1e9ee8d0d203a3159daef6276767a37d
     - imageRef: ghcr.io/siderolabs/nvidia-container-toolkit-lts:580.126.20-v1.18.2@sha256:34f1e8a5636cb11a493c3e4e2a22285a9b70c913bd1a337b42d9609bcf63dc65
