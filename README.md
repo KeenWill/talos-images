@@ -29,6 +29,7 @@ of this repository.
 | ----- | -------- | ------- |
 | `controlplane` | NVMe tools | installer, metal-raw |
 | `worker` | Storage tools, RoCE DCB, NIC temperature | installer, metal-raw |
+| `worker-kata` | Worker extensions plus Kata (Cloud Hypervisor, virtio-fs) | installer, metal-raw |
 | `gpu-ephemeral` | NVIDIA open LTS modules/toolkit, Tailscale | all seven |
 | `cpu-ephemeral` | Patched CPU base, lifecycle agent, Tailscale | all seven; local only |
 | `basic` | Stock Talos, no extensions | installer, metal-raw, iso, initramfs |
@@ -52,6 +53,17 @@ A `metal-raw` image takes its machine config over the network:
 zstd -dc _out/worker/metal-amd64.raw.zst | sudo dd of=/dev/sdX bs=16M status=progress conv=fsync
 talosctl apply-config --insecure --nodes <maintenance-ip> --file <node config>
 ```
+
+## Kata workers
+
+`worker-kata` is an opt-in shape so a single worker can qualify Kata before
+other workers change. It preserves the worker storage and NIC extensions.
+The [Talos v1.12.12 extension](https://github.com/siderolabs/extensions/tree/v1.12.12/container-runtime/kata-containers)
+ships Kata 3.26.0, Cloud Hypervisor and virtiofsd, and registers containerd
+handler `kata` with `privileged_without_host_devices = true`. It does not
+ship QEMU or Firecracker. The cluster must provide a RuntimeClass, admission
+and egress policies, and label only nodes whose Kata runtime has passed a
+smoke test. Building this shape does not install it on a node.
 
 ## Building
 
