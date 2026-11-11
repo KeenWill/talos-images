@@ -1,0 +1,28 @@
+---
+# Every Talos image shape built here, and the outputs each one gets.
+# A shape's contents (Talos version, installer base, extensions) are its
+# profile, profiles/<shape>.yaml; build.sh adds the platform and output.
+# Outputs: `installer` is the image `talosctl upgrade --image` pulls;
+# `metal-raw` is a USB-flashable disk with no machine config, which boots to
+# maintenance mode and takes its config from `talosctl apply-config`.
+# Node configs stay out of this repository: the cluster's private config pins
+# each node's installer by digest from a release's release.yaml.
+imager: ghcr.io/siderolabs/imager:v1.12.12@sha256:f9e9a666efb574dd4a891fcd33c3ec2e8c9512f97343f57660fe911202a6a86e
+shapes:
+  # Dedicated control-plane hosts.
+  controlplane:
+    outputs: [installer, metal-raw]
+  # MS-A2 workers.
+  worker:
+    outputs: [installer, metal-raw]
+  gpu-ephemeral:
+    outputs: [installer, metal-raw, iso, aws, gcp, hcloud, initramfs]
+  cpu-ephemeral:
+    # Local prototype inputs are not included in hosted CI or releases.
+    localInputs: true
+    imager: ghcr.io/siderolabs/imager:v1.12.6@sha256:c27f400814a8a9a5644bb6198edd22a6481d123c8088e914caf56209c0fd8973
+    outputs: [installer, metal-raw, iso, aws, gcp, hcloud, initramfs]
+  basic:
+    outputs: [installer, metal-raw, iso, initramfs]
+  cloud-worker:
+    outputs: [installer, metal-raw, iso, aws, gcp, hcloud, initramfs]

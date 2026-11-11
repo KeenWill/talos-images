@@ -1,0 +1,28 @@
+---
+# Talos imager profile for the control-plane installer.
+# build.sh adds the platform and output for each
+# output in shapes.yaml and passes it to the pinned imager on stdin.
+#
+# It reproduces Image Factory schematic
+# 00b36099b4e8f836a102e532efda01e2403c1112ca1e77d86574b16f152476d3
+# (official nvme-cli only, no extra kernel arguments) at v1.12.12. The extension
+# digest is the one Factory's v1.12.12 catalog serves for nvme-cli, so the
+# result matches Factory's metal-installer except for Factory's virtual
+# `schematic` extension. Kernel, initramfs and boot stubs come from the imager
+# image itself, which the build script pins by digest.
+arch: amd64
+secureboot: false
+version: v1.12.12
+input:
+  kernel:
+    path: /usr/install/amd64/vmlinuz
+  initramfs:
+    path: /usr/install/amd64/initramfs.xz
+  sdStub:
+    path: /usr/install/amd64/systemd-stub.efi
+  sdBoot:
+    path: /usr/install/amd64/systemd-boot.efi
+  baseInstaller:
+    imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
+  systemExtensions:
+    - imageRef: ghcr.io/siderolabs/nvme-cli:v2.14@sha256:1a3e7f3d6f635005a63c31f6f44d23fb5a973b496696a0a1f0ed6f17a4e22954

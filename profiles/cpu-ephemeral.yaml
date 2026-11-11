@@ -1,0 +1,19 @@
+---
+# Requires the patched base and agent from mono PR 1070; no stock fallback.
+arch: amd64
+secureboot: false
+version: v1.12.6
+input:
+  kernel:
+    path: /usr/install/amd64/vmlinuz
+  initramfs:
+    path: /inputs/ephemeral-worker-base.xz
+  sdStub:
+    path: /usr/install/amd64/systemd-stub.efi
+  sdBoot:
+    path: /usr/install/amd64/systemd-boot.efi
+  baseInstaller:
+    imageRef: ghcr.io/siderolabs/installer-base:v1.12.6@sha256:8694356ecd46f0d80887dc1502b909cc66254c7ca9e7ae315f29be91ea92a4fc
+  systemExtensions:
+    - imageRef: ghcr.io/siderolabs/tailscale:1.104.5@sha256:8b18ad11b07649e4218d25b46ae33d359cf16cf3932174b18db99edbe9e9b60d
+    - tarballPath: /inputs/ephemeral-worker-agent.tar

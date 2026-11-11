@@ -1,0 +1,35 @@
+---
+# Talos imager profile for the worker installer.
+# build.sh adds the platform and output for each
+# output in shapes.yaml and passes it to the pinned imager on stdin.
+#
+# It reproduces the worker installer
+# ghcr.io/keenwill/talos-metal-installer:v1.12.12-nic-temperature-v0.1.0
+# (sha256:eb597251...), built before this repository existed. The three
+# official extensions keep the v1.12.6 catalog builds that installer carries.
+# No extra kernel arguments.
+arch: amd64
+secureboot: false
+version: v1.12.12
+input:
+  kernel:
+    path: /usr/install/amd64/vmlinuz
+  initramfs:
+    path: /usr/install/amd64/initramfs.xz
+  sdStub:
+    path: /usr/install/amd64/systemd-stub.efi
+  sdBoot:
+    path: /usr/install/amd64/systemd-boot.efi
+  baseInstaller:
+    imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
+  systemExtensions:
+    # Longhorn needs iscsiadm/iscsid.
+    - imageRef: ghcr.io/siderolabs/iscsi-tools:v0.2.0@sha256:b30127b2f3ea6a49aa73dcf18c30da1fa1d2604da00c60519f8f00b4c6d25294
+    - imageRef: ghcr.io/siderolabs/nvme-cli:v2.14@sha256:d15c78f47aff07594769e42ad751dbd6e8e58f60d8a5ec940b3248090024d645
+    # Longhorn volume operations use fstrim and lsblk.
+    - imageRef: ghcr.io/siderolabs/util-linux-tools:2.41.2@sha256:8433604b21ec56871b00f363008ab455b2ece264246be915a2d6f742ec90ffcb
+    # Mellanox RoCE PFC/DSCP setup (source: KeenWill/talos-roce-dcb).
+    - imageRef: ghcr.io/keenwill/homelab-roce-dcb:v0.1.0-talos-v1.12.6@sha256:b8200acb7042e9eeaa94ae633aa914994c390e761da909bd32c460852fd93e60
+    # ConnectX ASIC temperature exporter (source:
+    # KeenWill/talos-mellanox-temperature-exporter).
+    - imageRef: ghcr.io/keenwill/talos-mellanox-temperature-exporter:v0.1.0@sha256:53428e6b509ec46aadefbb747f1c2fd39b539422e9c9c78738cfcf987cd265cc

@@ -1,0 +1,22 @@
+name: Set up yq
+description: Installs mikefarah yq v4 from its release, checked against a pinned SHA-256.
+runs:
+  using: composite
+  steps:
+    - name: Install yq
+      shell: bash
+      env:
+        # Bump both together; the digest is GitHub's for the release asset.
+        YQ_VERSION: v4.53.2
+        YQ_SHA256: d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b
+      run: |
+        set -euo pipefail
+        download="${RUNNER_TEMP}/yq_linux_amd64"
+        curl --fail --silent --show-error --location --retry 3 --output "$download" \
+          "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+        echo "${YQ_SHA256}  ${download}" | sha256sum --check --strict
+        # Replaces any yq in the runner image, which may be another version.
+        sudo install -m 0755 "$download" /usr/local/bin/yq
+        rm -f "$download"
+        [[ "$(command -v yq)" == /usr/local/bin/yq ]]
+        yq --version

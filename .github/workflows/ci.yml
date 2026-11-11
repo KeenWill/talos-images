@@ -1,0 +1,63 @@
+name: CI
+
+# Every job runs on GitHub-hosted runners: this repository is public, so fork
+# pull requests run proposed code, and no self-hosted runner serves it.
+# Fork pull requests also wait for a maintainer's approval before any run.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      installer-shapes: ${{ steps.shapes.outputs.installer-shapes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-yq
+      - name: Profiles, build script and release manifest
+        run: tests/profiles_test.sh
+      - name: Installer inspector
+        run: python3 -I tests/inspect_installer_test.py
+      - name: Shell lint
+        run: shellcheck build.sh release-manifest.sh tests/profiles_test.sh
+      - name: Shapes with an installer
+        id: shapes
+        run: echo "installer-shapes=$(yq -o json -I0 '[.shapes | to_entries[] | select(.value.localInputs != true) | select(.value.outputs[] == "installer") | .key]' shapes.yaml)" >>"$GITHUB_OUTPUT"
+
+  # Builds each shape's installer with the real imager (no privileges, no
+  # registry credentials), so a pin that does not resolve or an extension
+  # that does not fit the release fails here.
+  installer:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shape: ${{ fromJSON(needs.checks.outputs.installer-shapes) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-yq
+      - name: Build the installer
+        env:
+          SHAPE: ${{ matrix.shape }}
+        run: ./build.sh "$SHAPE" installer
+      - name: Summarize the installer
+        env:
+          SHAPE: ${{ matrix.shape }}
+        run: python3 -I inspect-installer.py "_out/${SHAPE}/installer-amd64.tar" | tee -a "$GITHUB_STEP_SUMMARY"

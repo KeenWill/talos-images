@@ -1,0 +1,48 @@
+// Renovate keeps the image pins current; nothing here automerges. A merged
+// pin change publishes nothing: a release does, after a build and a boot test.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+  dependencyDashboard: true,
+  enabledManagers: ["custom.regex", "github-actions"],
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Image pins (name:tag@digest) in shapes.yaml and the profiles",
+      managerFilePatterns: ["/^shapes\\.yaml$/", "/^profiles/[^/]+\\.yaml$/"],
+      matchStrings: [
+        "(?:imager|imageRef):\\s*(?<depName>[^\\s:@]+):(?<currentValue>[^\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})",
+      ],
+      datasourceTemplate: "docker",
+    },
+  ],
+  packageRules: [
+    {
+      description: "Never automerge",
+      matchPackageNames: ["*"],
+      automerge: false,
+    },
+    {
+      description: "The Talos release: the imager and installer base move together",
+      matchPackageNames: ["ghcr.io/siderolabs/imager", "ghcr.io/siderolabs/installer-base"],
+      groupName: "Talos",
+      // Talos upgrades go one minor release at a time.
+      separateMultipleMinor: true,
+    },
+    {
+      // Official extensions come from the Talos release's catalog
+      // (ghcr.io/siderolabs/extensions:<version>, /image-digests), and their
+      // newest tags often never ship in one; they move in the Talos bump PR.
+      // homelab-roce-dcb is frozen: the next Talos bump replaces it with
+      // ghcr.io/keenwill/roce-dcb (source: KeenWill/talos-roce-dcb).
+      description: "Extensions that move only in a Talos bump",
+      matchPackageNames: [
+        "ghcr.io/siderolabs/**",
+        "!ghcr.io/siderolabs/imager",
+        "!ghcr.io/siderolabs/installer-base",
+        "ghcr.io/keenwill/homelab-roce-dcb",
+      ],
+      enabled: false,
+    },
+  ],
+}
