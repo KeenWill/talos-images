@@ -15,8 +15,11 @@ runs:
         curl --fail --silent --show-error --location --retry 3 --output "$download" \
           "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
         echo "${YQ_SHA256}  ${download}" | sha256sum --check --strict
-        # Replaces any yq in the runner image, which may be another version.
-        sudo install -m 0755 "$download" /usr/local/bin/yq
+        tool_dir="${RUNNER_TEMP}/yq-bin"
+        mkdir -p "$tool_dir"
+        install -m 0755 "$download" "$tool_dir/yq"
+        echo "$tool_dir" >> "$GITHUB_PATH"
+        export PATH="$tool_dir:$PATH"
         rm -f "$download"
-        [[ "$(command -v yq)" == /usr/local/bin/yq ]]
+        [[ "$(command -v yq)" == "$tool_dir/yq" ]]
         yq --version
