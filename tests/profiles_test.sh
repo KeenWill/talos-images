@@ -105,7 +105,13 @@ run)
 	# Stand-in for the imager's output tar: the profile it received.
 	cat
 	;;
-load) echo "Loaded image: ghcr.io/siderolabs/installer-base:v1.12.12" ;;
+load)
+	case "${STUB_LOAD_MODE:-tag}" in
+	tag) echo "Loaded image: ghcr.io/siderolabs/installer-base:v1.12.12" ;;
+	id) echo "Loaded image ID: sha256:$(printf '2%.0s' {1..64})" ;;
+	unknown) echo "unexpected output" ;;
+	esac
+	;;
 inspect)
 	# A pull of another repository leaves its digest beside the pushed one.
 	image="${*: -1}"
@@ -242,6 +248,15 @@ grep -qx "tag ghcr.io/siderolabs/installer-base:v1.12.12 $published_image" "$CAL
 grep -qx "push $published_image" "$CALL_LOG" || fail "installer was not pushed"
 [[ "$(<"$test_dir/src/_out/worker/installer.ref")" == "${published_image}@sha256:$(printf 'a%.0s' {1..64})" ]] ||
 	fail "installer.ref is not the pushed repository's digest: $(<"$test_dir/src/_out/worker/installer.ref")"
+# Imager archives can be untagged: Docker reports their image ID instead.
+STUB_LOAD_MODE=id UPGRADE_IMAGE="$published_image" run_build worker installer ||
+	fail "publishing an untagged installer failed: $(<"$test_dir/output")"
+grep -qx "tag sha256:$(printf '2%.0s' {1..64}) $published_image" "$CALL_LOG" ||
+	fail "loaded installer ID was not tagged for publishing"
+STUB_LOAD_MODE=unknown UPGRADE_IMAGE="$published_image" run_build worker installer &&
+	fail "publishing succeeded without a loaded image identity"
+grep -q -E '^(tag|push) ' "$CALL_LOG" && fail "unknown load output reached publishing"
+[[ ! -e "$test_dir/src/_out/worker/installer.ref" ]] || fail "stale ref after unknown load output"
 STUB_NO_DIGEST=1 UPGRADE_IMAGE="$published_image" run_build worker installer &&
 	fail "publishing succeeded without a registry digest"
 [[ ! -e "$test_dir/src/_out/worker/installer.ref" ]] || fail "stale installer.ref left after a failed publish"
