@@ -30,6 +30,15 @@
       separateMultipleMinor: true,
     },
     {
+      // Version changes also need profile versions, a matching extension
+      // catalog and boot qualification. The CPU prototype has a patched base
+      // on its own release. Regex-only image bumps cannot perform that update.
+      description: "Keep Talos versions pinned until a complete profile upgrade",
+      matchPackageNames: ["ghcr.io/siderolabs/imager", "ghcr.io/siderolabs/installer-base"],
+      matchUpdateTypes: ["major", "minor", "patch"],
+      enabled: false,
+    },
+    {
       // Official extensions come from the Talos release's catalog
       // (ghcr.io/siderolabs/extensions:<version>, /image-digests), and their
       // newest tags often never ship in one; they move in the Talos bump PR.

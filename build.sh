@@ -165,7 +165,8 @@ build_output() {
 
 	if [[ "$output" == installer && -n "$UPGRADE_IMAGE" ]]; then
 		local loaded_image
-		loaded_image="$(docker load -i "$published" | sed -n 's/^Loaded image: //p' | tail -n1)"
+		# Untagged imager archives load by ID; tagged archives load by name.
+		loaded_image="$(docker load -i "$published" | sed -n -E 's/^Loaded image( ID)?: //p' | tail -n1)"
 		if [[ -z "$loaded_image" ]]; then
 			echo "error: docker load did not report an image" >&2
 			exit 1
