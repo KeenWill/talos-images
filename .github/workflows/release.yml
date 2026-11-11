@@ -5,7 +5,7 @@ name: Release
 # pushes it to ghcr.io/keenwill/talos-images/<shape>-installer:<tag>, records
 # build provenance for its digest, and attaches release.yaml, the manifest
 # the cluster config pins, with provenance of its own. Only people with write
-# access can publish a release; the jobs run on GitHub-hosted runners.
+# access can publish a release; the jobs run on ephemeral cluster runners.
 on:
   release:
     types: [published]
@@ -18,7 +18,8 @@ concurrency:
 
 jobs:
   shapes:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: cluster-talos-images
     timeout-minutes: 5
     permissions:
       contents: read
@@ -38,8 +39,9 @@ jobs:
           echo "installer-shapes=$(yq -o json -I0 '[.shapes | to_entries[] | select(.value.localInputs != true) | select(.value.outputs[] == "installer") | .key]' shapes.yaml)" >>"$GITHUB_OUTPUT"
 
   publish:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: shapes
-    runs-on: ubuntu-latest
+    runs-on: cluster-talos-images
     timeout-minutes: 30
     permissions:
       contents: read
@@ -85,8 +87,9 @@ jobs:
           retention-days: 1
 
   manifest:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: publish
-    runs-on: ubuntu-latest
+    runs-on: cluster-talos-images
     timeout-minutes: 5
     permissions:
       contents: write
@@ -122,4 +125,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$TAG" release.yaml --clobber --repo "$GITHUB_REPOSITORY"
+        run: nix shell nixpkgs#gh --command gh release upload "$TAG" release.yaml --clobber --repo "$GITHUB_REPOSITORY"
