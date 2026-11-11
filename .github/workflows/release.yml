@@ -125,4 +125,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$TAG" release.yaml --clobber --repo "$GITHUB_REPOSITORY"
+        run: nix shell nixpkgs#gh --command gh release upload "$TAG" release.yaml --clobber --repo "$GITHUB_REPOSITORY"
