@@ -13,7 +13,7 @@ input:
   sdBoot:
     path: /usr/install/amd64/systemd-boot.efi
   baseInstaller:
-    imageRef: ghcr.io/siderolabs/installer-base:v1.12.6@sha256:8694356ecd46f0d80887dc1502b909cc66254c7ca9e7ae315f29be91ea92a4fc
+    imageRef: ghcr.io/siderolabs/installer-base:v1.12.12@sha256:cdcef1c588c232350782c09a4e28268b78cf3a7053a7a180def6bdce4ef9fd71
   systemExtensions:
     - imageRef: ghcr.io/siderolabs/tailscale:1.104.5@sha256:8b18ad11b07649e4218d25b46ae33d359cf16cf3932174b18db99edbe9e9b60d
     - tarballPath: /inputs/ephemeral-worker-agent.tar

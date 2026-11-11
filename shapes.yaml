@@ -23,7 +23,7 @@ shapes:
   cpu-ephemeral:
     # Local prototype inputs are not included in hosted CI or releases.
     localInputs: true
-    imager: ghcr.io/siderolabs/imager:v1.12.6@sha256:c27f400814a8a9a5644bb6198edd22a6481d123c8088e914caf56209c0fd8973
+    imager: ghcr.io/siderolabs/imager:v1.12.12@sha256:f9e9a666efb574dd4a891fcd33c3ec2e8c9512f97343f57660fe911202a6a86e
     outputs: [installer, metal-raw, iso, aws, gcp, hcloud, initramfs]
   basic:
     outputs: [installer, metal-raw, iso, initramfs]
