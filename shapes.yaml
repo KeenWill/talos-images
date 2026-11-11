@@ -15,6 +15,9 @@ shapes:
   # MS-A2 workers.
   worker:
     outputs: [installer, metal-raw]
+  # Opt-in VM isolation for lane/CI workloads.
+  worker-kata:
+    outputs: [installer, metal-raw]
   gpu-ephemeral:
     outputs: [installer, metal-raw, iso, aws, gcp, hcloud, initramfs]
   cpu-ephemeral:
